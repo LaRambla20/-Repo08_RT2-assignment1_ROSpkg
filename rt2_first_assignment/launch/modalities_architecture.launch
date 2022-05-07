@@ -1,0 +1,7 @@
+<launch>
+    
+    <!-- <node name="mod_handler_py" pkg="rt2_first_assignment" type="mod_handler.py" output="screen" required = "true"/> -->
+    <node name="secondthird_mod_py" pkg="rt2_first_assignment" type="secondthird_mod.py" output="screen" required = "true"/>
+    <node name="first_mod_py" pkg="rt2_first_assignment" type="first_mod.py" output="screen" required = "true"/>
+
+</launch>

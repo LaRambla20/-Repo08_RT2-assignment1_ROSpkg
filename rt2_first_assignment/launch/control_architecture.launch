@@ -1,0 +1,9 @@
+<launch>
+
+    <node name="teleop_twist_keyboard_py" pkg="teleop_twist_keyboard" type="teleop_twist_keyboard.py" output="screen" launch-prefix="xterm -e" required = "true">
+        <remap from="/cmd_vel" to="/check_vel"/>
+    </node>
+    <node name="teleop_mediator_py" pkg="rt2_first_assignment" type="teleop_mediator.py" output="screen" required = "true"/>
+    <node name="robot_gui_py" pkg="rt2_first_assignment" type="robot_gui.py" output="screen" required = "true"/>
+
+</launch>
