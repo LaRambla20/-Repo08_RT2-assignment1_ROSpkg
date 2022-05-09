@@ -1,0 +1,311 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>scripts.secondthird_mod &mdash; first_RT2_assignment 1.0 documentation</title>
+      <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+      <link rel="stylesheet" href="../../_static/css/theme.css" type="text/css" />
+      <link rel="stylesheet" href="../../_static/graphviz.css" type="text/css" />
+  <!--[if lt IE 9]>
+    <script src="../../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script data-url_root="../../" id="documentation_options" src="../../_static/documentation_options.js"></script>
+        <script src="../../_static/jquery.js"></script>
+        <script src="../../_static/underscore.js"></script>
+        <script src="../../_static/doctools.js"></script>
+    <script src="../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+            <a href="../../index.html" class="icon icon-home"> first_RT2_assignment
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <!-- Local TOC -->
+              <div class="local-toc"></div>
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../index.html">first_RT2_assignment</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../index.html" class="icon icon-home"></a> &raquo;</li>
+          <li><a href="../index.html">Module code</a> &raquo;</li>
+      <li>scripts.secondthird_mod</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <h1>Source code for scripts.secondthird_mod</h1><div class="highlight"><pre>
+<span></span><span class="ch">#! /usr/bin/env python</span>
+
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">.. module:: secondthird_mod_node</span>
+<span class="sd">    :platform: Unix</span>
+<span class="sd">    :synopsis: Python module that implements under request the second and third control modality, by acting as a mediator between the notebook module named &#39;rt2_assignment1&#39; and the simulator</span>
+
+<span class="sd">.. moduleauthor:: Emanuele Rambaldi &lt;emanuele.rambaldi3@studio.unibo.it&gt;</span>
+
+<span class="sd">This node implements either modality 2 or modality 3. Both modalities are realized by performing a check over the velocity sent by the notebook module named &#39;rt2_assignment1&#39;. </span>
+<span class="sd">In particular, in modality 2 the velocity is directly forwarded to the simulator; whereas in modality 3 the forwarding of the desired velocity takes place only if it does not </span>
+<span class="sd">endanger the robot. Otherwise the robot is stopped. </span>
+<span class="sd">The switch between the two modalities at issue occurs under request of the notebook module named &#39;rt2_assignment1&#39;.</span>
+
+<span class="sd">Subscribes to:</span>
+<span class="sd">    - /scan</span>
+<span class="sd">    - /check_vel</span>
+
+<span class="sd">Publishes to:</span>
+<span class="sd">    - /cmd_vel</span>
+
+<span class="sd">Service:</span>
+<span class="sd">    - /change_mod2</span>
+
+<span class="sd">&quot;&quot;&quot;</span>
+
+<span class="kn">import</span> <span class="nn">rospy</span> <span class="c1"># import rospy to use ros functionalities</span>
+<span class="kn">from</span> <span class="nn">geometry_msgs.msg</span> <span class="kn">import</span> <span class="n">Twist</span> <span class="c1"># import the type of message that is exchanged both on the &#39;/cmd_vel&#39; topic and on the &#39;/check_vel&#39; topic</span>
+<span class="kn">from</span> <span class="nn">sensor_msgs.msg</span> <span class="kn">import</span> <span class="n">LaserScan</span> <span class="c1"># import the type of message that is exchanged on the &#39;/scan&#39; topic</span>
+<span class="kn">from</span> <span class="nn">rt2_first_assignment.srv</span> <span class="kn">import</span> <span class="n">ChangeMod</span><span class="p">,</span> <span class="n">ChangeModResponse</span> <span class="c1"># import both the request message type and the response message type of the &#39;ChangeMod.srv&#39; custom service</span>
+
+<span class="c1"># Publisher</span>
+<span class="n">pub</span> <span class="o">=</span> <span class="n">rospy</span><span class="o">.</span><span class="n">Publisher</span><span class="p">(</span><span class="s2">&quot;/cmd_vel&quot;</span><span class="p">,</span> <span class="n">Twist</span><span class="p">,</span> <span class="n">queue_size</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span> <span class="c1"># initialize and define the publisher that publishes on the &#39;/cmd_vel&#39; topic</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">Global publisher that publishes on the topic &#39;cmd_vel&#39; so as to set the robot velocity</span>
+<span class="sd">&quot;&quot;&quot;</span>
+
+<span class="c1"># GLOBAL CONSTANTS</span>
+
+<span class="n">dan_dist</span> <span class="o">=</span> <span class="mf">0.6</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">Safety distance</span>
+<span class="sd">&quot;&quot;&quot;</span>
+
+<span class="c1"># GLOBAL VARIABLES</span>
+
+<span class="n">regions_</span> <span class="o">=</span> <span class="p">{</span>
+    <span class="s1">&#39;right&#39;</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span>
+    <span class="s1">&#39;fright&#39;</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span>
+    <span class="s1">&#39;front&#39;</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span>
+    <span class="s1">&#39;fleft&#39;</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span>
+    <span class="s1">&#39;left&#39;</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span>
+<span class="p">}</span>
+<span class="n">required_mod</span> <span class="o">=</span> <span class="s2">&quot;0&quot;</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">Global string variable containing the number of the required modality</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="n">set_mod</span> <span class="o">=</span> <span class="s2">&quot;0&quot;</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">Global string variable containing the number of the set modality</span>
+<span class="sd">&quot;&quot;&quot;</span>
+
+<span class="c1"># Published message</span>
+<span class="n">vel</span> <span class="o">=</span> <span class="n">Twist</span><span class="p">()</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">Global message published on the &#39;/cmd_vel&#39; topic (contains the robot velocity to be set)</span>
+<span class="sd">&quot;&quot;&quot;</span>
+
+
+<span class="c1"># SERVICES CALL-BACK FUNCTIONS</span>
+
+<div class="viewcode-block" id="clbk_changemod_srv2"><a class="viewcode-back" href="../../index.html#scripts.secondthird_mod.clbk_changemod_srv2">[docs]</a><span class="k">def</span> <span class="nf">clbk_changemod_srv2</span><span class="p">(</span><span class="n">req</span><span class="p">):</span>
+
+    <span class="sd">&quot;&quot;&quot;Function that is called every time that a new-client request related to the &#39;/change_mod2&#39; service is received. </span>
+
+<span class="sd">    The number related to the required modality is stored in a global variable as a string. If the string is &quot;0&quot; the corresponding modality is set and the robot is stopped.</span>
+<span class="sd">    Otherwise the required modality is set only if the previous modality was &quot;0&quot; (that is: only if the user went back to the main menu).</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        req (str): number of the desired control modality stored as a string</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        True: boolean constant to warn the client about the fact that the modality has been set</span>
+<span class="sd">        False: boolean constant to warn the client about the fact that the modality has not been set</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">global</span> <span class="n">required_mod</span>
+    <span class="k">global</span> <span class="n">set_mod</span>
+    <span class="k">global</span> <span class="n">vel</span> 
+    <span class="k">global</span> <span class="n">pub</span>
+
+    <span class="n">required_mod</span> <span class="o">=</span> <span class="n">req</span><span class="o">.</span><span class="n">modality</span>
+    <span class="c1"># print(&quot;the requested modality is: &quot; + mod)</span>
+    <span class="k">if</span><span class="p">(</span><span class="n">required_mod</span> <span class="o">==</span> <span class="s2">&quot;0&quot;</span><span class="p">):</span>
+        <span class="n">set_mod</span><span class="o">=</span><span class="n">required_mod</span>
+        <span class="n">vel</span><span class="o">.</span><span class="n">linear</span><span class="o">.</span><span class="n">x</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="n">vel</span><span class="o">.</span><span class="n">angular</span><span class="o">.</span><span class="n">z</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="n">pub</span><span class="o">.</span><span class="n">publish</span><span class="p">(</span><span class="n">vel</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">ChangeModResponse</span><span class="p">(</span><span class="kc">True</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">if</span><span class="p">(</span><span class="n">set_mod</span> <span class="o">==</span> <span class="s2">&quot;0&quot;</span><span class="p">):</span>
+            <span class="n">set_mod</span><span class="o">=</span><span class="n">required_mod</span>
+            <span class="k">return</span> <span class="n">ChangeModResponse</span><span class="p">(</span><span class="kc">True</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">set_mod</span><span class="o">=</span><span class="n">set_mod</span>
+            <span class="k">return</span> <span class="n">ChangeModResponse</span><span class="p">(</span><span class="kc">False</span><span class="p">)</span></div>
+
+
+<span class="c1"># SUBSCRIBERS CALL-BACK FUNCTIONS</span>
+
+<div class="viewcode-block" id="clbk_laser"><a class="viewcode-back" href="../../index.html#scripts.secondthird_mod.clbk_laser">[docs]</a><span class="k">def</span> <span class="nf">clbk_laser</span><span class="p">(</span><span class="n">msg</span><span class="p">):</span>
+
+    <span class="sd">&quot;&quot;&quot;Function that is called every time that a new message is published on the &#39;/scan&#39; topic.</span>
+<span class="sd"> </span>
+<span class="sd">    The robot visual field is divided in 5 regions and the minimum distance balonging to each region is retrieved. Based on this information, if the selected modality is 3, </span>
+<span class="sd">    it is checked whether the desired robot velocity can cause a collision with the walls. If the answer is yes, the robot is stopped; otherwise, the desired robot velocity is set.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        msg (struct): structure containing the output of the robot&#39;s laser scanners</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">global</span> <span class="n">regions_</span>
+    <span class="k">global</span> <span class="n">vel</span>
+    <span class="k">global</span> <span class="n">pub</span>
+
+    <span class="n">regions_</span> <span class="o">=</span> <span class="p">{</span>
+        <span class="s1">&#39;right&#39;</span><span class="p">:</span>  <span class="nb">min</span><span class="p">(</span><span class="nb">min</span><span class="p">(</span><span class="n">msg</span><span class="o">.</span><span class="n">ranges</span><span class="p">[</span><span class="mi">0</span><span class="p">:</span><span class="mi">143</span><span class="p">]),</span> <span class="mi">10</span><span class="p">),</span>
+        <span class="s1">&#39;fright&#39;</span><span class="p">:</span> <span class="nb">min</span><span class="p">(</span><span class="nb">min</span><span class="p">(</span><span class="n">msg</span><span class="o">.</span><span class="n">ranges</span><span class="p">[</span><span class="mi">144</span><span class="p">:</span><span class="mi">287</span><span class="p">]),</span> <span class="mi">10</span><span class="p">),</span>
+        <span class="s1">&#39;front&#39;</span><span class="p">:</span>  <span class="nb">min</span><span class="p">(</span><span class="nb">min</span><span class="p">(</span><span class="n">msg</span><span class="o">.</span><span class="n">ranges</span><span class="p">[</span><span class="mi">288</span><span class="p">:</span><span class="mi">431</span><span class="p">]),</span> <span class="mi">10</span><span class="p">),</span>
+        <span class="s1">&#39;fleft&#39;</span><span class="p">:</span>  <span class="nb">min</span><span class="p">(</span><span class="nb">min</span><span class="p">(</span><span class="n">msg</span><span class="o">.</span><span class="n">ranges</span><span class="p">[</span><span class="mi">432</span><span class="p">:</span><span class="mi">575</span><span class="p">]),</span> <span class="mi">10</span><span class="p">),</span>
+        <span class="s1">&#39;left&#39;</span><span class="p">:</span>   <span class="nb">min</span><span class="p">(</span><span class="nb">min</span><span class="p">(</span><span class="n">msg</span><span class="o">.</span><span class="n">ranges</span><span class="p">[</span><span class="mi">576</span><span class="p">:</span><span class="mi">719</span><span class="p">]),</span> <span class="mi">10</span><span class="p">),</span>
+    <span class="p">}</span>
+
+    <span class="k">if</span><span class="p">(</span><span class="n">set_mod</span> <span class="o">==</span> <span class="s2">&quot;3&quot;</span><span class="p">):</span>
+
+        <span class="c1"># rospy.loginfo(&quot;\nThe distances in the regions are:\n - front: %f\n - right: %f\n -left: %f ;&quot;, regions_[&#39;front&#39;], regions_[&#39;right&#39;], regions_[&#39;left&#39;])</span>
+        
+        <span class="k">if</span><span class="p">(</span><span class="n">regions_</span><span class="p">[</span><span class="s1">&#39;front&#39;</span><span class="p">]</span> <span class="o">&lt;</span> <span class="n">dan_dist</span> <span class="ow">and</span> <span class="n">vel</span><span class="o">.</span><span class="n">linear</span><span class="o">.</span><span class="n">x</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">):</span>
+            <span class="n">vel</span><span class="o">.</span><span class="n">linear</span><span class="o">.</span><span class="n">x</span> <span class="o">=</span> <span class="mi">0</span>
+            <span class="n">vel</span><span class="o">.</span><span class="n">angular</span><span class="o">.</span><span class="n">z</span> <span class="o">=</span> <span class="mi">0</span>
+            <span class="n">pub</span><span class="o">.</span><span class="n">publish</span><span class="p">(</span><span class="n">vel</span><span class="p">)</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;</span><span class="se">\033</span><span class="s1">[91m&#39;</span> <span class="o">+</span> <span class="s2">&quot;</span><span class="se">\n</span><span class="s2">Frontal danger of collision&quot;</span> <span class="o">+</span> <span class="s1">&#39;</span><span class="se">\033</span><span class="s1">[0m&#39;</span> <span class="o">+</span> <span class="s2">&quot; -&gt; motors stopped&quot;</span><span class="p">)</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Either press &#39;Stop&#39; and change the motion direction or change the modality&quot;</span><span class="p">)</span>
+
+        <span class="k">elif</span><span class="p">(</span><span class="n">regions_</span><span class="p">[</span><span class="s1">&#39;right&#39;</span><span class="p">]</span> <span class="o">&lt;</span> <span class="n">dan_dist</span> <span class="ow">and</span> <span class="n">vel</span><span class="o">.</span><span class="n">angular</span><span class="o">.</span><span class="n">z</span> <span class="o">&lt;</span> <span class="mi">0</span><span class="p">):</span>
+            <span class="n">vel</span><span class="o">.</span><span class="n">linear</span><span class="o">.</span><span class="n">x</span> <span class="o">=</span> <span class="mi">0</span>
+            <span class="n">vel</span><span class="o">.</span><span class="n">angular</span><span class="o">.</span><span class="n">z</span> <span class="o">=</span> <span class="mi">0</span>
+            <span class="n">pub</span><span class="o">.</span><span class="n">publish</span><span class="p">(</span><span class="n">vel</span><span class="p">)</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;</span><span class="se">\033</span><span class="s1">[91m&#39;</span> <span class="o">+</span> <span class="s2">&quot;</span><span class="se">\n</span><span class="s2">Lateral (right) danger of collision&quot;</span> <span class="o">+</span> <span class="s1">&#39;</span><span class="se">\033</span><span class="s1">[0m&#39;</span> <span class="o">+</span> <span class="s2">&quot; -&gt; motors stopped&quot;</span><span class="p">)</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Either press &#39;Stop&#39; and change the motion direction or change the modality&quot;</span><span class="p">)</span>
+
+        <span class="k">elif</span><span class="p">(</span><span class="n">regions_</span><span class="p">[</span><span class="s1">&#39;left&#39;</span><span class="p">]</span> <span class="o">&lt;</span> <span class="n">dan_dist</span> <span class="ow">and</span> <span class="n">vel</span><span class="o">.</span><span class="n">angular</span><span class="o">.</span><span class="n">z</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">):</span>
+            <span class="n">vel</span><span class="o">.</span><span class="n">linear</span><span class="o">.</span><span class="n">x</span> <span class="o">=</span> <span class="mi">0</span>
+            <span class="n">vel</span><span class="o">.</span><span class="n">angular</span><span class="o">.</span><span class="n">z</span> <span class="o">=</span> <span class="mi">0</span>
+            <span class="n">pub</span><span class="o">.</span><span class="n">publish</span><span class="p">(</span><span class="n">vel</span><span class="p">)</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;</span><span class="se">\033</span><span class="s1">[91m&#39;</span> <span class="o">+</span> <span class="s2">&quot;</span><span class="se">\n</span><span class="s2">Lateral (left) danger of collision&quot;</span> <span class="o">+</span> <span class="s1">&#39;</span><span class="se">\033</span><span class="s1">[0m&#39;</span> <span class="o">+</span> <span class="s2">&quot; -&gt; motors stopped&quot;</span><span class="p">)</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Either press &#39;Stop&#39; and change the motion direction or change the modality&quot;</span><span class="p">)</span>
+
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">pub</span><span class="o">.</span><span class="n">publish</span><span class="p">(</span><span class="n">vel</span><span class="p">)</span></div>
+            <span class="c1"># rospy.loginfo(&quot;\nThe imposed velocity is:\n - lin: %f\n - ang: %f ;&quot;, vel.linear.x, vel.angular.z)</span>
+
+
+<span class="c1"># function that is called every time that a new message is published on the /check_vel topic</span>
+<div class="viewcode-block" id="clbk_velocity"><a class="viewcode-back" href="../../index.html#scripts.secondthird_mod.clbk_velocity">[docs]</a><span class="k">def</span> <span class="nf">clbk_velocity</span><span class="p">(</span><span class="n">msg</span><span class="p">):</span>
+
+    <span class="sd">&quot;&quot;&quot;Function that is called every time that a new message is published on the &#39;/check_vel&#39; topic. </span>
+
+<span class="sd">    If the selected modality is 2, the requested robot velocity is first stored in a global variable and then set. If instead the selected modality is 3, the desired robot </span>
+<span class="sd">    velocity is just stored in the global variable, waiting to be checked.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        msg (struct): structure containing the velocity requested by the notebook module named &#39;rt2_assignment1&#39; </span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">global</span> <span class="n">vel</span>
+    <span class="k">global</span> <span class="n">pub</span>
+
+    <span class="k">if</span><span class="p">(</span><span class="n">set_mod</span> <span class="o">==</span> <span class="s2">&quot;2&quot;</span><span class="p">):</span>
+        <span class="n">vel</span><span class="o">.</span><span class="n">linear</span><span class="o">.</span><span class="n">x</span> <span class="o">=</span> <span class="n">msg</span><span class="o">.</span><span class="n">linear</span><span class="o">.</span><span class="n">x</span>
+        <span class="n">vel</span><span class="o">.</span><span class="n">angular</span><span class="o">.</span><span class="n">z</span> <span class="o">=</span> <span class="n">msg</span><span class="o">.</span><span class="n">angular</span><span class="o">.</span><span class="n">z</span>
+        <span class="n">pub</span><span class="o">.</span><span class="n">publish</span><span class="p">(</span><span class="n">vel</span><span class="p">)</span>
+        <span class="c1"># rospy.loginfo(&quot;\nThe imposed velocity is:\n - lin: %f\n - ang: %f ;&quot;, vel.linear.x, vel.angular.z)</span>
+    
+    <span class="k">elif</span><span class="p">(</span><span class="n">set_mod</span> <span class="o">==</span> <span class="s2">&quot;3&quot;</span><span class="p">):</span>
+        <span class="n">vel</span><span class="o">.</span><span class="n">linear</span><span class="o">.</span><span class="n">x</span> <span class="o">=</span> <span class="n">msg</span><span class="o">.</span><span class="n">linear</span><span class="o">.</span><span class="n">x</span>
+        <span class="n">vel</span><span class="o">.</span><span class="n">angular</span><span class="o">.</span><span class="n">z</span> <span class="o">=</span> <span class="n">msg</span><span class="o">.</span><span class="n">angular</span><span class="o">.</span><span class="n">z</span>
+
+    <span class="k">else</span><span class="p">:</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;</span><span class="se">\033</span><span class="s1">[91m&#39;</span> <span class="o">+</span> <span class="s2">&quot;</span><span class="se">\n</span><span class="s2">Warning&quot;</span> <span class="o">+</span> <span class="s1">&#39;</span><span class="se">\033</span><span class="s1">[0m&#39;</span> <span class="o">+</span> <span class="s2">&quot;: choose or change the modality to drive the robot with the keyboard&quot;</span><span class="p">)</span></div>
+
+
+<span class="c1"># MAIN FUNCTION</span>
+
+<div class="viewcode-block" id="main"><a class="viewcode-back" href="../../index.html#scripts.secondthird_mod.main">[docs]</a><span class="k">def</span> <span class="nf">main</span><span class="p">():</span>
+
+    <span class="sd">&quot;&quot;&quot;Function that first initializes and defines the subscribers and the service, and then simply spins to allow the call-back functions to be called whenever a message arrives on the </span>
+<span class="sd">    corresponding communication channel.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">rospy</span><span class="o">.</span><span class="n">init_node</span><span class="p">(</span><span class="s1">&#39;secondthird_mod_node&#39;</span><span class="p">)</span> <span class="c1"># initialize the node with the name &#39;secondthird_mod_node&#39;</span>
+
+    <span class="n">sub_scan</span> <span class="o">=</span> <span class="n">rospy</span><span class="o">.</span><span class="n">Subscriber</span><span class="p">(</span><span class="s1">&#39;/scan&#39;</span><span class="p">,</span> <span class="n">LaserScan</span><span class="p">,</span> <span class="n">clbk_laser</span><span class="p">)</span> <span class="c1"># initialize and define the subscriber that subscribes to the &#39;/scan&#39; topic and assign the &#39;clbk_laser&#39; call-back function to it </span>
+    <span class="n">sub_checkvel</span> <span class="o">=</span> <span class="n">rospy</span><span class="o">.</span><span class="n">Subscriber</span><span class="p">(</span><span class="s1">&#39;/check_vel&#39;</span><span class="p">,</span> <span class="n">Twist</span><span class="p">,</span> <span class="n">clbk_velocity</span><span class="p">)</span> <span class="c1"># initialize and define the subscriber that subscribes to the &#39;/check_vel&#39; topic and assign the &#39;clbk_velocity&#39; call-back function to it</span>
+
+    <span class="n">changemod_srv2</span> <span class="o">=</span> <span class="n">rospy</span><span class="o">.</span><span class="n">Service</span><span class="p">(</span><span class="s1">&#39;/change_mod2&#39;</span><span class="p">,</span> <span class="n">ChangeMod</span><span class="p">,</span> <span class="n">clbk_changemod_srv2</span><span class="p">)</span> <span class="c1"># initialize and define the server that answers to requests belonging to the &#39;/change_mod2&#39; service and assign the &#39;clbk_changemod_srv2&#39; call-back function to it</span>
+    
+    <span class="n">rospy</span><span class="o">.</span><span class="n">spin</span><span class="p">()</span> <span class="c1"># spin to allow the call-back functions to be called whenever a message arrives on the correspondent topic or service</span></div>
+
+
+
+
+<span class="k">if</span> <span class="vm">__name__</span> <span class="o">==</span> <span class="s1">&#39;__main__&#39;</span><span class="p">:</span> <span class="c1"># if this node is run directly:</span>
+    <span class="n">main</span><span class="p">()</span>
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2022, Emanuele Rambaldi.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

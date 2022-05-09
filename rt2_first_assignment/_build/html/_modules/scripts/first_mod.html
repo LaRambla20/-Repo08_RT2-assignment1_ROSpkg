@@ -1,0 +1,277 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>scripts.first_mod &mdash; first_RT2_assignment 1.0 documentation</title>
+      <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+      <link rel="stylesheet" href="../../_static/css/theme.css" type="text/css" />
+      <link rel="stylesheet" href="../../_static/graphviz.css" type="text/css" />
+  <!--[if lt IE 9]>
+    <script src="../../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script data-url_root="../../" id="documentation_options" src="../../_static/documentation_options.js"></script>
+        <script src="../../_static/jquery.js"></script>
+        <script src="../../_static/underscore.js"></script>
+        <script src="../../_static/doctools.js"></script>
+    <script src="../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+            <a href="../../index.html" class="icon icon-home"> first_RT2_assignment
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <!-- Local TOC -->
+              <div class="local-toc"></div>
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../index.html">first_RT2_assignment</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../index.html" class="icon icon-home"></a> &raquo;</li>
+          <li><a href="../index.html">Module code</a> &raquo;</li>
+      <li>scripts.first_mod</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <h1>Source code for scripts.first_mod</h1><div class="highlight"><pre>
+<span></span><span class="ch">#! /usr/bin/env python</span>
+
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">.. module:: first_mod_node</span>
+<span class="sd">    :platform: Unix</span>
+<span class="sd">    :synopsis: Python module that implements under request the first control modality</span>
+
+<span class="sd">.. moduleauthor:: Emanuele Rambaldi &lt;emanuele.rambaldi3@studio.unibo.it&gt;</span>
+
+<span class="sd">This node implements modality 1 under request of the notebook module named &#39;rt2_assignment1&#39;. Specifically, it receives the target positions sent by the notebook and it sets them. </span>
+<span class="sd">After waiting for the fulfilment of the reaching task for a certain amount of time (60s), it communicates back to the notebook the final status of the goal (either reached or not reached).</span>
+
+<span class="sd">Subscribes to:</span>
+<span class="sd">    - /set_goal</span>
+
+<span class="sd">Publishes to:</span>
+<span class="sd">    - /goal_status</span>
+
+<span class="sd">Client:</span>
+<span class="sd">    - /change_mod1</span>
+
+<span class="sd">Action client:</span>
+<span class="sd">    - /move_base</span>
+
+<span class="sd">&quot;&quot;&quot;</span>
+
+<span class="kn">import</span> <span class="nn">rospy</span> <span class="c1"># import rospy to use ros functionalities</span>
+<span class="kn">from</span> <span class="nn">std_msgs.msg</span> <span class="kn">import</span> <span class="n">Bool</span>
+<span class="kn">from</span> <span class="nn">rt2_first_assignment.msg</span> <span class="kn">import</span> <span class="n">SetGoal</span>
+<span class="kn">from</span> <span class="nn">rt2_first_assignment.srv</span> <span class="kn">import</span> <span class="n">ChangeMod</span><span class="p">,</span> <span class="n">ChangeModResponse</span> <span class="c1">#import both the request message type and the response message type of the &#39;ChangeMod.srv&#39; custom service</span>
+<span class="kn">import</span> <span class="nn">actionlib</span> <span class="c1"># import actionlib to use actions</span>
+<span class="kn">from</span> <span class="nn">move_base_msgs.msg</span> <span class="kn">import</span> <span class="n">MoveBaseAction</span><span class="p">,</span> <span class="n">MoveBaseGoal</span> <span class="c1">#import both the MoveBaseAction and MoveBaseGoal type of action message</span>
+
+<span class="c1"># Publisher</span>
+<span class="n">pub</span> <span class="o">=</span> <span class="n">rospy</span><span class="o">.</span><span class="n">Publisher</span><span class="p">(</span><span class="s1">&#39;/goal_status&#39;</span><span class="p">,</span> <span class="n">Bool</span><span class="p">,</span> <span class="n">queue_size</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span> <span class="c1">#initialize and define the publisher that publishes on the &#39;/goal_status&#39; topic</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">Global publisher for warning the notebook node about the goal final status</span>
+<span class="sd">&quot;&quot;&quot;</span>
+
+<span class="c1"># Published message</span>
+<span class="n">status</span> <span class="o">=</span> <span class="n">Bool</span><span class="p">()</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">Global message published on the &#39;/goal_status&#39; topic (contains the final status of the current goal)</span>
+<span class="sd">&quot;&quot;&quot;</span>
+
+<span class="c1"># GLOBAL VARIABLES</span>
+
+<span class="n">required_mod</span> <span class="o">=</span> <span class="s2">&quot;0&quot;</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">Global string variable containing the number of the required modality</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="n">set_mod</span> <span class="o">=</span> <span class="s2">&quot;0&quot;</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">Global string variable containing the number of the set modality</span>
+<span class="sd">&quot;&quot;&quot;</span>
+
+<span class="c1"># SERVICES CALL-BACK FUNCTIONS</span>
+
+<span class="c1"># function that is called every time that a new client request related to the /change_mod service is received</span>
+<div class="viewcode-block" id="clbk_changemod_srv1"><a class="viewcode-back" href="../../index.html#scripts.first_mod.clbk_changemod_srv1">[docs]</a><span class="k">def</span> <span class="nf">clbk_changemod_srv1</span><span class="p">(</span><span class="n">req</span><span class="p">):</span>
+
+    <span class="sd">&quot;&quot;&quot;Function that is called every time that a new-client request related to the &#39;/change_mod1&#39; service is received. </span>
+
+<span class="sd">    The number related to the required modality is stored in a global variable as a string. If the string is &quot;0&quot; the corresponding modality is set and the robot is stopped.</span>
+<span class="sd">    Otherwise the required modality is set only if the previous modality was &quot;0&quot; (that is: only if the user went back to the main menu).</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        req (str): number of the desired control modality stored as a string</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        True: boolean constant to warn the client about the fact that the modality has been set</span>
+<span class="sd">        False: boolean constant to warn the client about the fact that the modality has not been set</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">global</span> <span class="n">required_mod</span>
+    <span class="k">global</span> <span class="n">set_mod</span>
+
+    <span class="n">required_mod</span> <span class="o">=</span> <span class="n">req</span><span class="o">.</span><span class="n">modality</span>
+    <span class="c1">#print(&quot;the requested modality is: &quot; + required_mod)</span>
+    <span class="k">if</span><span class="p">(</span><span class="n">required_mod</span> <span class="o">==</span> <span class="s2">&quot;0&quot;</span><span class="p">):</span>
+        <span class="n">set_mod</span><span class="o">=</span><span class="n">required_mod</span>
+        <span class="k">return</span> <span class="n">ChangeModResponse</span><span class="p">(</span><span class="kc">True</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span> <span class="c1">#store in the previous modality variable the required modality only if the previous modality was 0 (aka only if I went back to the main menu)</span>
+        <span class="k">if</span><span class="p">(</span><span class="n">set_mod</span> <span class="o">==</span> <span class="s2">&quot;0&quot;</span><span class="p">):</span>
+            <span class="n">set_mod</span><span class="o">=</span><span class="n">required_mod</span>
+            <span class="k">return</span> <span class="n">ChangeModResponse</span><span class="p">(</span><span class="kc">True</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">set_mod</span><span class="o">=</span><span class="n">set_mod</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;</span><span class="se">\033</span><span class="s1">[91m&#39;</span> <span class="o">+</span> <span class="s2">&quot;</span><span class="se">\n</span><span class="s2">Warning&quot;</span> <span class="o">+</span> <span class="s1">&#39;</span><span class="se">\033</span><span class="s1">[0m&#39;</span> <span class="o">+</span> <span class="s1">&#39;: return to modality selection to change the modality&#39;</span><span class="p">)</span>
+            <span class="k">return</span> <span class="n">ChangeModResponse</span><span class="p">(</span><span class="kc">False</span><span class="p">)</span></div>
+
+<span class="c1"># AUXILIARY FUNCTIONS</span>
+
+<div class="viewcode-block" id="set_goal_position"><a class="viewcode-back" href="../../index.html#scripts.first_mod.set_goal_position">[docs]</a><span class="k">def</span> <span class="nf">set_goal_position</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">):</span>
+
+    <span class="sd">&quot;&quot;&quot;Function that is called in order to send requests belonging to the &#39;/move_base&#39; action.</span>
+
+<span class="sd">    First the goal position passed as argument is sent in form of request to the action server. Then the process waits for the fulfilment of the task for a certain amount of time (60s).</span>
+<span class="sd">    If the action server provides a result, the information about the successful reaching of the target position is published on the &#39;/goal_status&#39; topic. </span>
+<span class="sd">    Otherwise the task is cancelled via another request to the action server and the failure is communicated by means of the &#39;/goal_status&#39; topic.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        x (float): x-coordinate of the target position</span>
+<span class="sd">        y (float): y-coordinate of the target position</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">global</span> <span class="n">action_client</span>
+    <span class="k">global</span> <span class="n">pub</span>
+
+    <span class="n">action_client</span><span class="o">.</span><span class="n">wait_for_server</span><span class="p">()</span>
+
+    <span class="n">goal</span><span class="o">=</span> <span class="n">MoveBaseGoal</span><span class="p">()</span>
+    <span class="n">goal</span><span class="o">.</span><span class="n">target_pose</span><span class="o">.</span><span class="n">header</span><span class="o">.</span><span class="n">frame_id</span> <span class="o">=</span> <span class="s2">&quot;map&quot;</span>
+    <span class="n">goal</span><span class="o">.</span><span class="n">target_pose</span><span class="o">.</span><span class="n">header</span><span class="o">.</span><span class="n">stamp</span> <span class="o">=</span> <span class="n">rospy</span><span class="o">.</span><span class="n">Time</span><span class="o">.</span><span class="n">now</span><span class="p">()</span>
+    <span class="n">goal</span><span class="o">.</span><span class="n">target_pose</span><span class="o">.</span><span class="n">pose</span><span class="o">.</span><span class="n">orientation</span><span class="o">.</span><span class="n">w</span> <span class="o">=</span> <span class="mf">1.0</span> 
+    <span class="n">goal</span><span class="o">.</span><span class="n">target_pose</span><span class="o">.</span><span class="n">pose</span><span class="o">.</span><span class="n">position</span><span class="o">.</span><span class="n">x</span><span class="o">=</span> <span class="n">x</span>
+    <span class="n">goal</span><span class="o">.</span><span class="n">target_pose</span><span class="o">.</span><span class="n">pose</span><span class="o">.</span><span class="n">position</span><span class="o">.</span><span class="n">y</span><span class="o">=</span> <span class="n">y</span>
+
+    <span class="n">action_client</span><span class="o">.</span><span class="n">send_goal</span><span class="p">(</span><span class="n">goal</span><span class="p">)</span> <span class="c1">#send the goal message to the action server </span>
+
+    <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;</span><span class="se">\033</span><span class="s1">[93m&#39;</span> <span class="o">+</span> <span class="s2">&quot;</span><span class="se">\n</span><span class="s2">Driving towards the goal...&quot;</span> <span class="o">+</span> <span class="s1">&#39;</span><span class="se">\033</span><span class="s1">[0m&#39;</span><span class="p">)</span>
+
+    <span class="n">finished_before_timeout</span> <span class="o">=</span> <span class="n">action_client</span><span class="o">.</span><span class="n">wait_for_result</span><span class="p">(</span><span class="n">rospy</span><span class="o">.</span><span class="n">Duration</span><span class="o">.</span><span class="n">from_sec</span><span class="p">(</span><span class="mf">60.0</span><span class="p">))</span> <span class="c1"># wait 60 seconds for the server to finish performing the action</span>
+    
+    <span class="k">if</span> <span class="p">(</span><span class="n">finished_before_timeout</span><span class="p">):</span> <span class="c1">#if the result is output before the elapsing of the timer, the robot succesfully reached the target position</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Goal reaching:&#39;</span> <span class="o">+</span> <span class="s1">&#39;</span><span class="se">\033</span><span class="s1">[92m&#39;</span> <span class="o">+</span> <span class="s1">&#39; SUCCEDED&#39;</span> <span class="o">+</span> <span class="s1">&#39;</span><span class="se">\033</span><span class="s1">[0m&#39;</span><span class="p">)</span>
+        <span class="n">status</span><span class="o">.</span><span class="n">data</span> <span class="o">=</span> <span class="kc">True</span>
+        <span class="n">pub</span><span class="o">.</span><span class="n">publish</span><span class="p">(</span><span class="n">status</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span> <span class="c1">#if the timer elapses, the robot failed in reaching the target position</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Goal reaching:&#39;</span> <span class="o">+</span> <span class="s1">&#39;</span><span class="se">\033</span><span class="s1">[91m&#39;</span> <span class="o">+</span> <span class="s1">&#39; FAILED (timeout)&#39;</span> <span class="o">+</span> <span class="s1">&#39;</span><span class="se">\033</span><span class="s1">[0m&#39;</span><span class="p">)</span>
+        <span class="n">action_client</span><span class="o">.</span><span class="n">cancel_goal</span><span class="p">()</span>
+        <span class="n">status</span><span class="o">.</span><span class="n">data</span> <span class="o">=</span> <span class="kc">False</span>
+        <span class="n">pub</span><span class="o">.</span><span class="n">publish</span><span class="p">(</span><span class="n">status</span><span class="p">)</span></div>
+
+<span class="c1"># SUBSCRIBERS CALL-BACK FUNCTIONS</span>
+
+<div class="viewcode-block" id="clbk_setgoal"><a class="viewcode-back" href="../../index.html#scripts.first_mod.clbk_setgoal">[docs]</a><span class="k">def</span> <span class="nf">clbk_setgoal</span><span class="p">(</span><span class="n">msg</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Function that is called every time that a new message is published on the &#39;/set_goal&#39; topic.</span>
+
+<span class="sd">    If the set modality is 1, the goal position contained in the message is forwarded to the &#39;set_goal_position&#39; function; otherwise a warning message is printed on the terminal.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        msg (struct): structure containing the coordinates of the goal position</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">global</span> <span class="n">set_mod</span>
+    
+    <span class="k">if</span> <span class="p">(</span><span class="n">set_mod</span> <span class="o">==</span> <span class="s1">&#39;1&#39;</span><span class="p">):</span>
+        <span class="n">goal_x</span><span class="o">=</span><span class="n">msg</span><span class="o">.</span><span class="n">abscissa</span>
+        <span class="n">goal_y</span><span class="o">=</span><span class="n">msg</span><span class="o">.</span><span class="n">ordinate</span>
+        <span class="n">set_goal_position</span><span class="p">(</span><span class="n">goal_x</span><span class="p">,</span><span class="n">goal_y</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;</span><span class="se">\033</span><span class="s1">[91m&#39;</span> <span class="o">+</span> <span class="s2">&quot;</span><span class="se">\n</span><span class="s2">Warning&quot;</span> <span class="o">+</span> <span class="s1">&#39;</span><span class="se">\033</span><span class="s1">[0m&#39;</span> <span class="o">+</span> <span class="s2">&quot;: choose or change the modality to make the robot reach a goal position&quot;</span><span class="p">)</span></div>
+
+
+
+<span class="c1"># MAIN FUNCTION</span>
+
+<div class="viewcode-block" id="main"><a class="viewcode-back" href="../../index.html#scripts.first_mod.main">[docs]</a><span class="k">def</span> <span class="nf">main</span><span class="p">():</span>
+
+    <span class="sd">&quot;&quot;&quot;Function that first initializes and defines the subscriber and the service, and then simply spins to allow the call-back functions to be called whenever a message arrives on the </span>
+<span class="sd">    correspondent communication channel.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">rospy</span><span class="o">.</span><span class="n">init_node</span><span class="p">(</span><span class="s1">&#39;first_mod_node&#39;</span><span class="p">)</span> <span class="c1"># initialize the node with the name &#39;first_mod_node&#39;</span>
+
+    <span class="c1"># Action Client</span>
+    <span class="n">action_client</span> <span class="o">=</span> <span class="n">actionlib</span><span class="o">.</span><span class="n">SimpleActionClient</span><span class="p">(</span><span class="s1">&#39;/move_base&#39;</span><span class="p">,</span> <span class="n">MoveBaseAction</span><span class="p">)</span> <span class="c1">#initialize and define the client that sends requests belonging to the &#39;/move_base&#39; action</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Global action client for both setting and cancelling a target position</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">sub_setgoal</span> <span class="o">=</span> <span class="n">rospy</span><span class="o">.</span><span class="n">Subscriber</span><span class="p">(</span><span class="s1">&#39;/set_goal&#39;</span><span class="p">,</span> <span class="n">SetGoal</span><span class="p">,</span> <span class="n">clbk_setgoal</span><span class="p">)</span>  <span class="c1"># initialize and define the subscriber that subscribes to the &#39;/set_goal&#39; topic and assign the &#39;clbk_setgoal&#39; call-back function to it </span>
+    <span class="n">changemod_srv1</span> <span class="o">=</span><span class="n">rospy</span><span class="o">.</span><span class="n">Service</span><span class="p">(</span><span class="s1">&#39;/change_mod1&#39;</span><span class="p">,</span> <span class="n">ChangeMod</span><span class="p">,</span> <span class="n">clbk_changemod_srv1</span><span class="p">)</span> <span class="c1"># initialize and define the server that answers to requests belonging to the &#39;/change_mod1&#39; service and assign the &#39;clbk_changemod_srv1&#39; call-back function to it</span>
+    
+    <span class="n">rospy</span><span class="o">.</span><span class="n">spin</span><span class="p">()</span> <span class="c1"># spin to allow the call-back functions to be called whenever a message arrives on the correspondent topic or service</span></div>
+
+
+
+
+<span class="k">if</span> <span class="vm">__name__</span> <span class="o">==</span> <span class="s1">&#39;__main__&#39;</span><span class="p">:</span> <span class="c1"># if this node is run directly:</span>
+    <span class="n">main</span><span class="p">()</span>
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2022, Emanuele Rambaldi.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

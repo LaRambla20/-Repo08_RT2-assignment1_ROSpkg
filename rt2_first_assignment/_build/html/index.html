@@ -1,0 +1,320 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Welcome to first_RT2_assignment’s documentation! &mdash; first_RT2_assignment 1.0 documentation</title>
+      <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+      <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+      <link rel="stylesheet" href="_static/graphviz.css" type="text/css" />
+  <!--[if lt IE 9]>
+    <script src="_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
+        <script src="_static/jquery.js"></script>
+        <script src="_static/underscore.js"></script>
+        <script src="_static/doctools.js"></script>
+    <script src="_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+            <a href="#" class="icon icon-home"> first_RT2_assignment
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <!-- Local TOC -->
+              <div class="local-toc"><ul>
+<li><a class="reference internal" href="#">Welcome to first_RT2_assignment’s documentation!</a></li>
+<li><a class="reference internal" href="#indices-and-tables">Indices and tables</a></li>
+<li><a class="reference internal" href="#module-scripts.first_mod">First Modality Module</a></li>
+<li><a class="reference internal" href="#module-scripts.secondthird_mod">Second-Third Modality Module</a></li>
+</ul>
+</div>
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="#">first_RT2_assignment</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="#" class="icon icon-home"></a> &raquo;</li>
+      <li>Welcome to first_RT2_assignment’s documentation!</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="_sources/index.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <div class="section" id="welcome-to-first-rt2-assignment-s-documentation">
+<h1>Welcome to first_RT2_assignment’s documentation!<a class="headerlink" href="#welcome-to-first-rt2-assignment-s-documentation" title="Permalink to this headline"></a></h1>
+<div class="toctree-wrapper compound">
+</div>
+</div>
+<div class="section" id="indices-and-tables">
+<h1>Indices and tables<a class="headerlink" href="#indices-and-tables" title="Permalink to this headline"></a></h1>
+<ul class="simple">
+<li><p><a class="reference internal" href="genindex.html"><span class="std std-ref">Index</span></a></p></li>
+<li><p><a class="reference internal" href="py-modindex.html"><span class="std std-ref">Module Index</span></a></p></li>
+<li><p><a class="reference internal" href="search.html"><span class="std std-ref">Search Page</span></a></p></li>
+</ul>
+</div>
+<div class="section" id="module-scripts.first_mod">
+<span id="first-modality-module"></span><h1>First Modality Module<a class="headerlink" href="#module-scripts.first_mod" title="Permalink to this headline"></a></h1>
+<span class="target" id="module-first_mod_node"></span><p>This node implements modality 1 under request of the notebook module named ‘rt2_assignment1’. Specifically, it receives the target positions sent by the notebook and it sets them.
+After waiting for the fulfilment of the reaching task for a certain amount of time (60s), it communicates back to the notebook the final status of the goal (either reached or not reached).</p>
+<dl class="simple">
+<dt>Subscribes to:</dt><dd><ul class="simple">
+<li><p>/set_goal</p></li>
+</ul>
+</dd>
+<dt>Publishes to:</dt><dd><ul class="simple">
+<li><p>/goal_status</p></li>
+</ul>
+</dd>
+<dt>Client:</dt><dd><ul class="simple">
+<li><p>/change_mod1</p></li>
+</ul>
+</dd>
+<dt>Action client:</dt><dd><ul class="simple">
+<li><p>/move_base</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="py function">
+<dt class="sig sig-object py" id="scripts.first_mod.clbk_changemod_srv1">
+<span class="sig-prename descclassname"><span class="pre">scripts.first_mod.</span></span><span class="sig-name descname"><span class="pre">clbk_changemod_srv1</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">req</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/scripts/first_mod.html#clbk_changemod_srv1"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#scripts.first_mod.clbk_changemod_srv1" title="Permalink to this definition"></a></dt>
+<dd><p>Function that is called every time that a new-client request related to the ‘/change_mod1’ service is received.</p>
+<p>The number related to the required modality is stored in a global variable as a string. If the string is “0” the corresponding modality is set and the robot is stopped.
+Otherwise the required modality is set only if the previous modality was “0” (that is: only if the user went back to the main menu).</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>req</strong> (<em>str</em>) – number of the desired control modality stored as a string</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>boolean constant to warn the client about the fact that the modality has been set
+False: boolean constant to warn the client about the fact that the modality has not been set</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>True</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="scripts.first_mod.clbk_setgoal">
+<span class="sig-prename descclassname"><span class="pre">scripts.first_mod.</span></span><span class="sig-name descname"><span class="pre">clbk_setgoal</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">msg</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/scripts/first_mod.html#clbk_setgoal"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#scripts.first_mod.clbk_setgoal" title="Permalink to this definition"></a></dt>
+<dd><p>Function that is called every time that a new message is published on the ‘/set_goal’ topic.</p>
+<p>If the set modality is 1, the goal position contained in the message is forwarded to the ‘set_goal_position’ function; otherwise a warning message is printed on the terminal.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>msg</strong> (<em>struct</em>) – structure containing the coordinates of the goal position</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="scripts.first_mod.main">
+<span class="sig-prename descclassname"><span class="pre">scripts.first_mod.</span></span><span class="sig-name descname"><span class="pre">main</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/scripts/first_mod.html#main"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#scripts.first_mod.main" title="Permalink to this definition"></a></dt>
+<dd><p>Function that first initializes and defines the subscriber and the service, and then simply spins to allow the call-back functions to be called whenever a message arrives on the
+correspondent communication channel.</p>
+</dd></dl>
+
+<dl class="py data">
+<dt class="sig sig-object py" id="scripts.first_mod.pub">
+<span class="sig-prename descclassname"><span class="pre">scripts.first_mod.</span></span><span class="sig-name descname"><span class="pre">pub</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">&lt;rospy.topics.Publisher</span> <span class="pre">object&gt;</span></em><a class="headerlink" href="#scripts.first_mod.pub" title="Permalink to this definition"></a></dt>
+<dd><p>Global publisher for warning the notebook node about the goal final status</p>
+</dd></dl>
+
+<dl class="py data">
+<dt class="sig sig-object py" id="scripts.first_mod.required_mod">
+<span class="sig-prename descclassname"><span class="pre">scripts.first_mod.</span></span><span class="sig-name descname"><span class="pre">required_mod</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'0'</span></em><a class="headerlink" href="#scripts.first_mod.required_mod" title="Permalink to this definition"></a></dt>
+<dd><p>Global string variable containing the number of the required modality</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="scripts.first_mod.set_goal_position">
+<span class="sig-prename descclassname"><span class="pre">scripts.first_mod.</span></span><span class="sig-name descname"><span class="pre">set_goal_position</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">y</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/scripts/first_mod.html#set_goal_position"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#scripts.first_mod.set_goal_position" title="Permalink to this definition"></a></dt>
+<dd><p>Function that is called in order to send requests belonging to the ‘/move_base’ action.</p>
+<p>First the goal position passed as argument is sent in form of request to the action server. Then the process waits for the fulfilment of the task for a certain amount of time (60s).
+If the action server provides a result, the information about the successful reaching of the target position is published on the ‘/goal_status’ topic.
+Otherwise the task is cancelled via another request to the action server and the failure is communicated by means of the ‘/goal_status’ topic.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>x</strong> (<em>float</em>) – x-coordinate of the target position</p></li>
+<li><p><strong>y</strong> (<em>float</em>) – y-coordinate of the target position</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py data">
+<dt class="sig sig-object py" id="scripts.first_mod.set_mod">
+<span class="sig-prename descclassname"><span class="pre">scripts.first_mod.</span></span><span class="sig-name descname"><span class="pre">set_mod</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'0'</span></em><a class="headerlink" href="#scripts.first_mod.set_mod" title="Permalink to this definition"></a></dt>
+<dd><p>Global string variable containing the number of the set modality</p>
+</dd></dl>
+
+<dl class="py data">
+<dt class="sig sig-object py" id="scripts.first_mod.status">
+<span class="sig-prename descclassname"><span class="pre">scripts.first_mod.</span></span><span class="sig-name descname"><span class="pre">status</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">data:</span> <span class="pre">False</span></em><a class="headerlink" href="#scripts.first_mod.status" title="Permalink to this definition"></a></dt>
+<dd><p>Global message published on the ‘/goal_status’ topic (contains the final status of the current goal)</p>
+</dd></dl>
+
+</div>
+<div class="section" id="module-scripts.secondthird_mod">
+<span id="second-third-modality-module"></span><h1>Second-Third Modality Module<a class="headerlink" href="#module-scripts.secondthird_mod" title="Permalink to this headline"></a></h1>
+<span class="target" id="module-secondthird_mod_node"></span><p>This node implements either modality 2 or modality 3. Both modalities are realized by performing a check over the velocity sent by the notebook module named ‘rt2_assignment1’.
+In particular, in modality 2 the velocity is directly forwarded to the simulator; whereas in modality 3 the forwarding of the desired velocity takes place only if it does not
+endanger the robot. Otherwise the robot is stopped.
+The switch between the two modalities at issue occurs under request of the notebook module named ‘rt2_assignment1’.</p>
+<dl class="simple">
+<dt>Subscribes to:</dt><dd><ul class="simple">
+<li><p>/scan</p></li>
+<li><p>/check_vel</p></li>
+</ul>
+</dd>
+<dt>Publishes to:</dt><dd><ul class="simple">
+<li><p>/cmd_vel</p></li>
+</ul>
+</dd>
+<dt>Service:</dt><dd><ul class="simple">
+<li><p>/change_mod2</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="py function">
+<dt class="sig sig-object py" id="scripts.secondthird_mod.clbk_changemod_srv2">
+<span class="sig-prename descclassname"><span class="pre">scripts.secondthird_mod.</span></span><span class="sig-name descname"><span class="pre">clbk_changemod_srv2</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">req</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/scripts/secondthird_mod.html#clbk_changemod_srv2"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#scripts.secondthird_mod.clbk_changemod_srv2" title="Permalink to this definition"></a></dt>
+<dd><p>Function that is called every time that a new-client request related to the ‘/change_mod2’ service is received.</p>
+<p>The number related to the required modality is stored in a global variable as a string. If the string is “0” the corresponding modality is set and the robot is stopped.
+Otherwise the required modality is set only if the previous modality was “0” (that is: only if the user went back to the main menu).</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>req</strong> (<em>str</em>) – number of the desired control modality stored as a string</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>boolean constant to warn the client about the fact that the modality has been set
+False: boolean constant to warn the client about the fact that the modality has not been set</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>True</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="scripts.secondthird_mod.clbk_laser">
+<span class="sig-prename descclassname"><span class="pre">scripts.secondthird_mod.</span></span><span class="sig-name descname"><span class="pre">clbk_laser</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">msg</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/scripts/secondthird_mod.html#clbk_laser"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#scripts.secondthird_mod.clbk_laser" title="Permalink to this definition"></a></dt>
+<dd><p>Function that is called every time that a new message is published on the ‘/scan’ topic.</p>
+<p>The robot visual field is divided in 5 regions and the minimum distance balonging to each region is retrieved. Based on this information, if the selected modality is 3,
+it is checked whether the desired robot velocity can cause a collision with the walls. If the answer is yes, the robot is stopped; otherwise, the desired robot velocity is set.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>msg</strong> (<em>struct</em>) – structure containing the output of the robot’s laser scanners</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="scripts.secondthird_mod.clbk_velocity">
+<span class="sig-prename descclassname"><span class="pre">scripts.secondthird_mod.</span></span><span class="sig-name descname"><span class="pre">clbk_velocity</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">msg</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/scripts/secondthird_mod.html#clbk_velocity"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#scripts.secondthird_mod.clbk_velocity" title="Permalink to this definition"></a></dt>
+<dd><p>Function that is called every time that a new message is published on the ‘/check_vel’ topic.</p>
+<p>If the selected modality is 2, the requested robot velocity is first stored in a global variable and then set. If instead the selected modality is 3, the desired robot
+velocity is just stored in the global variable, waiting to be checked.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>msg</strong> (<em>struct</em>) – structure containing the velocity requested by the notebook module named ‘rt2_assignment1’</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py data">
+<dt class="sig sig-object py" id="scripts.secondthird_mod.dan_dist">
+<span class="sig-prename descclassname"><span class="pre">scripts.secondthird_mod.</span></span><span class="sig-name descname"><span class="pre">dan_dist</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">0.6</span></em><a class="headerlink" href="#scripts.secondthird_mod.dan_dist" title="Permalink to this definition"></a></dt>
+<dd><p>Safety distance</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="scripts.secondthird_mod.main">
+<span class="sig-prename descclassname"><span class="pre">scripts.secondthird_mod.</span></span><span class="sig-name descname"><span class="pre">main</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/scripts/secondthird_mod.html#main"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#scripts.secondthird_mod.main" title="Permalink to this definition"></a></dt>
+<dd><p>Function that first initializes and defines the subscribers and the service, and then simply spins to allow the call-back functions to be called whenever a message arrives on the
+corresponding communication channel.</p>
+</dd></dl>
+
+<dl class="py data">
+<dt class="sig sig-object py" id="scripts.secondthird_mod.pub">
+<span class="sig-prename descclassname"><span class="pre">scripts.secondthird_mod.</span></span><span class="sig-name descname"><span class="pre">pub</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">&lt;rospy.topics.Publisher</span> <span class="pre">object&gt;</span></em><a class="headerlink" href="#scripts.secondthird_mod.pub" title="Permalink to this definition"></a></dt>
+<dd><p>Global publisher that publishes on the topic ‘cmd_vel’ so as to set the robot velocity</p>
+</dd></dl>
+
+<dl class="py data">
+<dt class="sig sig-object py" id="scripts.secondthird_mod.required_mod">
+<span class="sig-prename descclassname"><span class="pre">scripts.secondthird_mod.</span></span><span class="sig-name descname"><span class="pre">required_mod</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'0'</span></em><a class="headerlink" href="#scripts.secondthird_mod.required_mod" title="Permalink to this definition"></a></dt>
+<dd><p>Global string variable containing the number of the required modality</p>
+</dd></dl>
+
+<dl class="py data">
+<dt class="sig sig-object py" id="scripts.secondthird_mod.set_mod">
+<span class="sig-prename descclassname"><span class="pre">scripts.secondthird_mod.</span></span><span class="sig-name descname"><span class="pre">set_mod</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'0'</span></em><a class="headerlink" href="#scripts.secondthird_mod.set_mod" title="Permalink to this definition"></a></dt>
+<dd><p>Global string variable containing the number of the set modality</p>
+</dd></dl>
+
+<dl class="py data">
+<dt class="sig sig-object py" id="scripts.secondthird_mod.vel">
+<span class="sig-prename descclassname"><span class="pre">scripts.secondthird_mod.</span></span><span class="sig-name descname"><span class="pre">vel</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">linear:</span>&#160;&#160;&#160; <span class="pre">x:</span> <span class="pre">0.0</span>&#160;&#160; <span class="pre">y:</span> <span class="pre">0.0</span>&#160;&#160; <span class="pre">z:</span> <span class="pre">0.0</span> <span class="pre">angular:</span>&#160;&#160;&#160; <span class="pre">x:</span> <span class="pre">0.0</span>&#160;&#160; <span class="pre">y:</span> <span class="pre">0.0</span>&#160;&#160; <span class="pre">z:</span> <span class="pre">0.0</span></em><a class="headerlink" href="#scripts.secondthird_mod.vel" title="Permalink to this definition"></a></dt>
+<dd><p>Global message published on the ‘/cmd_vel’ topic (contains the robot velocity to be set)</p>
+</dd></dl>
+
+</div>
+
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2022, Emanuele Rambaldi.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>
